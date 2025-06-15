@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Ranking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-tag {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .player-tag:hover {
+            transform: scale(1.05);
+        }
+
+        .player-tag.deleting {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .player-tag.deleting::after {
+            content: "Hold to delete";
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .game-setup {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            border: 2px dashed #667eea;
+        }
+
+        .rank-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .rank-input span {
+            min-width: 60px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .rankings {
+            grid-column: 1 / -1;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ranking-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .ranking-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .rank-position {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .rank-1 { color: #d69e2e; }
+        .rank-2 { color: #718096; }
+        .rank-3 { color: #c05621; }
+
+        .games-history {
+            margin-top: 20px;
+        }
+
+        .game-record {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .game-record h4 {
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .game-players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .game-player {
+            background: #f7fafc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+
+            .card h2 {
+                font-size: 1.3rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            input, select {
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            .ranking-table {
+                font-size: 14px;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                padding: 10px 8px;
+            }
+
+            .rank-input {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .rank-input span {
+                min-width: auto;
+                text-align: center;
+            }
+
+            .player-tag {
+                font-size: 14px;
+                padding: 10px 14px;
+                margin: 4px;
+            }
+
+            .game-setup {
+                padding: 15px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .ranking-table {
+                font-size: 12px;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                padding: 8px 6px;
+            }
+
+            .player-tag {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .game-record {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .error {
+            color: #e53e3e;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #38a169;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Player Ranking System</h1>
+            <p>Track players, create games, and maintain rankings</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Player Management -->
+            <div class="card">
+                <h2>👥 Player Management</h2>
+                <div class="form-group">
+                    <label for="playerName">Add New Player:</label>
+                    <input type="text" id="playerName" placeholder="Enter player name">
+                    <div id="playerError" class="error"></div>
+                </div>
+                <button class="btn" onclick="addPlayer()">Add Player</button>
+                
+                <div class="player-list" id="playerList">
+                    <!-- Players will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Game Management -->
+            <div class="card">
+                <h2>🎮 Game Management</h2>
+                <div class="form-group">
+                    <label for="gameName">Game Name:</label>
+                    <input type="text" id="gameName" placeholder="Enter game name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="numPlayers">Number of Players:</label>
+                    <select id="numPlayers" onchange="setupGameRanks()">
+                        <option value="">Select number of players</option>
+                        <option value="2">2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4">4 Players</option>
+                        <option value="5">5 Players</option>
+                        <option value="6">6 Players</option>
+                        <option value="7">7 Players</option>
+                        <option value="8">8 Players</option>
+                    </select>
+                </div>
+
+                <div id="gameSetup" class="game-setup" style="display: none;">
+                    <h3>🏅 Rank Players (1st = Highest Points)</h3>
+                    <div id="rankInputs">
+                        <!-- Rank inputs will be generated here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="submitGame()">Submit Game Results</button>
+                </div>
+                <div id="gameError" class="error"></div>
+                <div id="gameSuccess" class="success"></div>
+            </div>
+        </div>
+
+        <!-- Rankings Section -->
+        <div class="card rankings">
+            <h2>🏆 Overall Rankings</h2>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Total Points</th>
+                        <th>Games Played</th>
+                        <th>Average Points</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingsBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #718096;">No games played yet</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="games-history">
+                <h3>📊 Recent Games</h3>
+                <div id="gamesHistory">
+                    <p style="color: #718096; text-align: center;">No games recorded yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let players = [];
+        let games = [];
+        let playerStats = {};
+        let longPressTimer = null;
+        let longPressPlayer = null;
+
+        // Long press functionality for deleting players
+        function startLongPress(playerName, event) {
+            event.preventDefault();
+            longPressPlayer = playerName;
+            const playerTag = event.target;
+            
+            longPressTimer = setTimeout(() => {
+                playerTag.classList.add('deleting');
+                
+                // Vibrate if supported (mobile)
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+                
+                setTimeout(() => {
+                    if (confirm(`Remove player "${playerName}" from active players?\n\nThey will still appear in rankings and game history.`)) {
+                        deletePlayer(playerName);
+                    }
+                    playerTag.classList.remove('deleting');
+                    longPressTimer = null;
+                    longPressPlayer = null;
+                }, 500);
+            }, 800); // 800ms long press
+        }
+
+        function endLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+                longPressPlayer = null;
+                // Remove deleting class from all player tags
+                document.querySelectorAll('.player-tag.deleting').forEach(tag => {
+                    tag.classList.remove('deleting');
+                });
+            }
+        }
+
+        function cancelLongPress() {
+            endLongPress();
+        }
+
+        function deletePlayer(playerName) {
+            // Remove player from active players array only
+            const playerIndex = players.indexOf(playerName);
+            if (playerIndex > -1) {
+                players.splice(playerIndex, 1);
+            }
+
+            // Keep player stats and game history intact
+            // Only remove from active player list for future games
+
+            // Update displays
+            updatePlayerList();
+            // Rankings and games history remain unchanged to preserve historical data
+
+            // Show success message
+            const successDiv = document.getElementById('gameSuccess');
+            successDiv.textContent = `Player "${playerName}" removed from active players. Historical data preserved.`;
+            setTimeout(() => {
+                successDiv.textContent = '';
+            }, 3000);
+        }
+
+        // Point system: 1st place gets most points, decreasing by rank
+        function calculatePoints(rank, totalPlayers) {
+            return Math.max(1, totalPlayers - rank + 1);
+        }
+
+        function addPlayer() {
+            const nameInput = document.getElementById('playerName');
+            const errorDiv = document.getElementById('playerError');
+            const name = nameInput.value.trim();
+
+            errorDiv.textContent = '';
+
+            if (!name) {
+                errorDiv.textContent = 'Please enter a player name';
+                return;
+            }
+
+            if (players.includes(name)) {
+                errorDiv.textContent = 'Player already exists';
+                return;
+            }
+
+            players.push(name);
+            playerStats[name] = { totalPoints: 0, gamesPlayed: 0 };
+            nameInput.value = '';
+            updatePlayerList();
+            updateRankings();
+        }
+
+        function updatePlayerList() {
+            const playerListDiv = document.getElementById('playerList');
+            if (players.length === 0) {
+                playerListDiv.innerHTML = '<p style="color: #718096;">No players added yet</p>';
+                return;
+            }
+
+            playerListDiv.innerHTML = players.map(player => 
+                `<div class="player-tag" 
+                    ontouchstart="startLongPress('${player}', event)" 
+                    ontouchend="endLongPress()" 
+                    ontouchmove="cancelLongPress()"
+                    onmousedown="startLongPress('${player}', event)" 
+                    onmouseup="endLongPress()" 
+                    onmouseleave="endLongPress()">${player}</div>`
+            ).join('');
+        }
+
+        function setupGameRanks() {
+            const numPlayers = parseInt(document.getElementById('numPlayers').value);
+            const gameSetup = document.getElementById('gameSetup');
+            const rankInputs = document.getElementById('rankInputs');
+
+            if (!numPlayers) {
+                gameSetup.style.display = 'none';
+                return;
+            }
+
+            if (players.length < numPlayers) {
+                document.getElementById('gameError').textContent = `You need at least ${numPlayers} players. Currently have ${players.length} players.`;
+                gameSetup.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('gameError').textContent = '';
+            gameSetup.style.display = 'block';
+
+            // Generate rank input fields
+            let html = '';
+            for (let i = 1; i <= numPlayers; i++) {
+                html += `
+                    <div class="rank-input">
+                        <span>Rank ${i}:</span>
+                        <select id="rank${i}" onchange="validateRankSelection()">
+                            <option value="">Select player</option>
+                            ${players.map(player => `<option value="${player}">${player}</option>`).join('')}
+                        </select>
+                        <span style="color: #667eea; font-weight: bold;">${calculatePoints(i, numPlayers)} pts</span>
+                    </div>
+                `;
+            }
+            rankInputs.innerHTML = html;
+        }
+
+        function validateRankSelection() {
+            const numPlayers = parseInt(document.getElementById('numPlayers').value);
+            const selectedPlayers = [];
+            
+            for (let i = 1; i <= numPlayers; i++) {
+                const selected = document.getElementById(`rank${i}`).value;
+                if (selected) {
+                    selectedPlayers.push(selected);
+                }
+            }
+
+            // Check for duplicates
+            const hasDuplicates = selectedPlayers.length !== new Set(selectedPlayers).size;
+            if (hasDuplicates) {
+                document.getElementById('gameError').textContent = 'Each player can only be selected once';
+            } else {
+                document.getElementById('gameError').textContent = '';
+            }
+        }
+
+        function submitGame() {
+            const gameName = document.getElementById('gameName').value.trim();
+            const numPlayers = parseInt(document.getElementById('numPlayers').value);
+            const errorDiv = document.getElementById('gameError');
+            const successDiv = document.getElementById('gameSuccess');
+
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
+
+            if (!gameName) {
+                errorDiv.textContent = 'Please enter a game name';
+                return;
+            }
+
+            if (!numPlayers) {
+                errorDiv.textContent = 'Please select number of players';
+                return;
+            }
+
+            // Collect all rank selections
+            const gameResults = [];
+            const selectedPlayers = [];
+
+            for (let i = 1; i <= numPlayers; i++) {
+                const playerSelect = document.getElementById(`rank${i}`);
+                const selectedPlayer = playerSelect.value;
+
+                if (!selectedPlayer) {
+                    errorDiv.textContent = `Please select a player for rank ${i}`;
+                    return;
+                }
+
+                if (selectedPlayers.includes(selectedPlayer)) {
+                    errorDiv.textContent = 'Each player can only be selected once';
+                    return;
+                }
+
+                selectedPlayers.push(selectedPlayer);
+                const points = calculatePoints(i, numPlayers);
+                
+                gameResults.push({
+                    player: selectedPlayer,
+                    rank: i,
+                    points: points
+                });
+            }
+
+            // Save game
+            const game = {
+                name: gameName,
+                date: new Date().toLocaleDateString(),
+                results: gameResults
+            };
+
+            games.unshift(game); // Add to beginning of array
+
+            // Update player stats
+            gameResults.forEach(result => {
+                playerStats[result.player].totalPoints += result.points;
+                playerStats[result.player].gamesPlayed += 1;
+            });
+
+            // Reset form
+            document.getElementById('gameName').value = '';
+            document.getElementById('numPlayers').value = '';
+            document.getElementById('gameSetup').style.display = 'none';
+
+            successDiv.textContent = `Game "${gameName}" recorded successfully!`;
+
+            // Update displays
+            updateRankings();
+            updateGamesHistory();
+
+            // Clear success message after 3 seconds
+            setTimeout(() => {
+                successDiv.textContent = '';
+            }, 3000);
+        }
+
+        function updateRankings() {
+            const tbody = document.getElementById('rankingsBody');
+
+            if (players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #718096;">No players added yet</td></tr>';
+                return;
+            }
+
+            // Sort players by total points (descending)
+            const sortedPlayers = players
+                .map(player => ({
+                    name: player,
+                    ...playerStats[player],
+                    avgPoints: playerStats[player].gamesPlayed > 0 ? 
+                        (playerStats[player].totalPoints / playerStats[player].gamesPlayed).toFixed(1) : '0.0'
+                }))
+                .sort((a, b) => b.totalPoints - a.totalPoints);
+
+            if (sortedPlayers.every(p => p.totalPoints === 0)) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #718096;">No games played yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sortedPlayers.map((player, index) => {
+                const rank = index + 1;
+                let rankClass = '';
+                if (rank === 1) rankClass = 'rank-1';
+                else if (rank === 2) rankClass = 'rank-2';
+                else if (rank === 3) rankClass = 'rank-3';
+
+                return `
+                    <tr>
+                        <td class="rank-position ${rankClass}">#${rank}</td>
+                        <td>${player.name}</td>
+                        <td><strong>${player.totalPoints}</strong></td>
+                        <td>${player.gamesPlayed}</td>
+                        <td>${player.avgPoints}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateGamesHistory() {
+            const historyDiv = document.getElementById('gamesHistory');
+
+            if (games.length === 0) {
+                historyDiv.innerHTML = '<p style="color: #718096; text-align: center;">No games recorded yet</p>';
+                return;
+            }
+
+            historyDiv.innerHTML = games.slice(0, 5).map(game => `
+                <div class="game-record">
+                    <h4>🎮 ${game.name} - ${game.date}</h4>
+                    <div class="game-players">
+                        ${game.results.map(result => 
+                            `<div class="game-player">#${result.rank} ${result.player} (${result.points}pts)</div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize the app
+        updatePlayerList();
+        updateRankings();
+    </script>
+</body>
+</html>
